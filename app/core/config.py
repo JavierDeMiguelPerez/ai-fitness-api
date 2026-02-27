@@ -2,8 +2,8 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    # TODO: Define aquí PROJECT_NAME como string
-    # TODO: Define aquí PROJECT_VERSION como string
+    PROJECT_NAME: str = "FitnessAPI"
+    PROJECT_VERSION: str = "1.0.0"
 
     class Config:
         env_file = ".env"

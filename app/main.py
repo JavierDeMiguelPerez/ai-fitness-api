@@ -6,7 +6,8 @@ app = FastAPI()
 
 @app.get("/health")
 def health_check() -> dict:
-    # TODO: Modifica el return para que devuelva el status "ok",
-    # el "project_name" leyendo de settings, y 
-    # la "version" leyendo de settings.
-    pass
+    return {
+        "status": "ok",
+        "project_name": settings.PROJECT_NAME,
+        "version": settings.PROJECT_VERSION
+    }
