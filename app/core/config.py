@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     PROJECT_VERSION: str
     DATABASE_URL: str
+    GROQ_API_KEY: str
 
     class Config:
         env_file = ".env"
