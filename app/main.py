@@ -1,8 +1,10 @@
-# app/main.py
 from fastapi import FastAPI
-from app.core.config import settings # <-- Importamos los settings
+from app.core.config import settings
+from app.api.routers import users
 
-app = FastAPI()
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
+
+app.include_router(users.router)
 
 @app.get("/health")
 def health_check() -> dict:
