@@ -4,7 +4,7 @@ from app.core.config import settings
 
 client = Groq(api_key=settings.GROQ_API_KEY)
 
-MODEL_NAME = "llama3-8b-8192"
+MODEL_NAME = "llama-3.1-8b-instant"
 import json
 
 def generate_fitness_plan(user_profile: dict) -> dict:
