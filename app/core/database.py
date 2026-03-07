@@ -4,10 +4,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
 # 1. Creamos el motor conectándolo a la URL de Neon
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(
+    settings.DATABASE_URL, 
+    pool_pre_ping=True
+)
 
 # 2. Creamos la fábrica de sesiones
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 3. Creamos la clase base para nuestros modelos
 Base = declarative_base()

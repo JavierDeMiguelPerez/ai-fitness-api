@@ -1,6 +1,7 @@
 # app/schemas/workout.py
 from pydantic import BaseModel
 from typing import List
+from typing import Optional
 
 class UserProfile(BaseModel):
     age: int
@@ -12,9 +13,9 @@ class UserProfile(BaseModel):
 
 class Exercise(BaseModel):
     name: str
-    sets: int
-    reps: str
-    rest_seconds: int
+    sets: Optional[int] = 0
+    reps: Optional[str] = ""
+    rest_seconds: Optional[int] = 0
     
 
 class WorkoutDay(BaseModel):

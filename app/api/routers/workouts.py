@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.workout import ExerciseLog, ExerciseLog, SetLog, WorkoutSession
 from app.models.workout import SetLog
-from app.schemas.tracking import WorkoutSessionCreate
+from app.schemas.tracking import WorkoutSessionCreate, WorkoutSessionResponse
 from app.schemas.workout import UserProfile, WorkoutPlan
 from app.services import llm_service
+from typing import List
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 @router.post("/generate", response_model=WorkoutPlan)
@@ -45,3 +46,13 @@ def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(
         "message": "Entrenamiento registrado con éxito", 
         "session_id": new_session.id
     }
+
+@router.get("/history/{user_id}", response_model=List[WorkoutSessionResponse])
+def get_workout_history(user_id: int, db: Session = Depends(get_db)):
+    # Hacemos la query filtrando por el usuario y ordenando por fecha descendente
+    history = db.query(WorkoutSession)\
+                .filter(WorkoutSession.user_id == user_id)\
+                .order_by(WorkoutSession.date.desc())\
+                .all()
+    
+    return history

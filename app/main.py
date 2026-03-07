@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from app.core.config import settings
-from app.api.routers import users
-from app.api.routers import workouts
+from app.api.routers import users, workouts, diets
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 
 app.include_router(users.router)
 app.include_router(workouts.router)
-
+app.include_router(diets.router)
 @app.get("/health")
 def health_check() -> dict:
     return {

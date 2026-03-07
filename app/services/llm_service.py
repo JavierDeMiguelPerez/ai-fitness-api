@@ -43,3 +43,47 @@ def generate_fitness_plan(user_profile: dict) -> dict:
     # 4. Extraemos el texto y lo convertimos a un diccionario Python real
     raw_json_string = response.choices[0].message.content
     return json.loads(raw_json_string)
+
+# Añade esto en app/services/llm_service.py
+
+def generate_diet_plan(user_profile: dict) -> dict:
+    system_prompt = """
+    You are an elite AI sports nutritionist. 
+    Calculate the estimated daily caloric needs and macros based on the user's profile and goal.
+    You must output ONLY valid JSON. No markdown formatting, no conversational text.
+    The JSON must strictly follow this structure:
+    {
+        "plan_name": "string",
+        "goal": "string",
+        "days": [
+            {
+                "day_name": "string",
+                "total_calories": 0,
+                "meals": [
+                    {
+                        "meal_name": "string",
+                        "description": "string",
+                        "calories": 0,
+                        "protein_g": 0,
+                        "carbs_g": 0,
+                        "fats_g": 0
+                    }
+                ]
+            }
+        ]
+    }
+    """
+    
+    user_prompt = f"Create a 3-day diet plan for this user profile: {json.dumps(user_profile)}"
+    
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    raw_json_string = response.choices[0].message.content
+    return json.loads(raw_json_string)
