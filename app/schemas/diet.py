@@ -30,3 +30,34 @@ class DietPlan(BaseModel):
     plan_name: str
     goal: str
     days: List[DailyDiet]
+
+class MealLogRequest(BaseModel):
+    meal_text: str
+
+class MealMacrosResponse(BaseModel):
+    food_recognized: str
+    calories: int
+    protein_g: int
+    carbs_g: int
+    fats_g: int
+
+class DietModificationRequest(BaseModel):
+    current_plan: DietPlan
+    modification_prompt: str
+
+class DietPlanSave(BaseModel):
+    user_id: int
+    plan: DietPlan
+
+class MealLogSaveRequest(BaseModel):
+    user_id: int
+    meal_text: str
+
+class MealLogSaveResponse(BaseModel):
+    message: str
+    log_id: int
+    food_recognized: str
+    calories: int
+    protein_g: int
+    carbs_g: int
+    fats_g: int

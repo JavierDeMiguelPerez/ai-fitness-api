@@ -5,9 +5,11 @@ from app.core.database import get_db
 from app.models.workout import ExerciseLog, ExerciseLog, SetLog, WorkoutSession
 from app.models.workout import SetLog
 from app.schemas.tracking import WorkoutSessionCreate, WorkoutSessionResponse
-from app.schemas.workout import UserProfile, WorkoutPlan
+from app.schemas.workout import UserProfile, WorkoutModificationRequest, WorkoutPlan
 from app.services import llm_service
 from typing import List
+from app.models.workout import WorkoutPlan as DBWorkoutPlan
+from app.schemas.workout import WorkoutPlanSave
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 @router.post("/generate", response_model=WorkoutPlan)
@@ -56,3 +58,30 @@ def get_workout_history(user_id: int, db: Session = Depends(get_db)):
                 .all()
     
     return history
+
+@router.post("/modify", response_model=WorkoutPlan)
+def modify_workout(request: WorkoutModificationRequest):
+    current_plan_dict = request.current_plan.model_dump()
+    
+    modified_plan_dict = llm_service.modify_fitness_plan(
+        current_plan=current_plan_dict, 
+        modification_prompt=request.modification_prompt
+    )
+    
+    return modified_plan_dict
+
+@router.post("/save")
+def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db)):
+    plan_dict = request.plan.model_dump()
+    
+    new_plan = DBWorkoutPlan(
+        user_id=request.user_id,
+        name=request.plan.plan_name,
+        plan_data=plan_dict
+    )
+    
+    db.add(new_plan)
+    db.commit()
+    db.refresh(new_plan)
+    
+    return {"message": "Rutina guardada con éxito", "plan_id": new_plan.id}

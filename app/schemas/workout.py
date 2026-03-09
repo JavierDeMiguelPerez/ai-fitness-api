@@ -26,3 +26,11 @@ class WorkoutPlan(BaseModel):
     plan_name: str
     goal: str
     days: List[WorkoutDay]
+
+class WorkoutModificationRequest(BaseModel):
+    current_plan: WorkoutPlan
+    modification_prompt: str
+
+class WorkoutPlanSave(BaseModel):
+    user_id: int
+    plan: WorkoutPlan
