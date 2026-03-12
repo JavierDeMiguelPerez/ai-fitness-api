@@ -1,6 +1,8 @@
 # app/api/routers/diets.py
+from app.api.deps import get_current_user
 from app.models.diet import SavedDietPlan
 from fastapi import APIRouter
+from app.models.user import User
 from app.services import llm_service
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
@@ -37,11 +39,11 @@ def modify_diet(request: DietModificationRequest):
     return modified_plan_dict
 
 @router.post("/save")
-def save_diet_plan(request: DietPlanSave, db: Session = Depends(get_db)):
+def save_diet_plan(request: DietPlanSave, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan_dict = request.plan.model_dump()
     
     new_plan = SavedDietPlan(
-        user_id=request.user_id,
+        user_id=current_user.id,
         name=request.plan.plan_name,
         plan_data=plan_dict
     )

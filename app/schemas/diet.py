@@ -2,7 +2,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-# 1. Lo que nos envía el usuario
 class DietProfile(BaseModel):
     age: int
     weight_kg: float
@@ -46,11 +45,9 @@ class DietModificationRequest(BaseModel):
     modification_prompt: str
 
 class DietPlanSave(BaseModel):
-    user_id: int
     plan: DietPlan
 
 class MealLogSaveRequest(BaseModel):
-    user_id: int
     meal_text: str
 
 class MealLogSaveResponse(BaseModel):

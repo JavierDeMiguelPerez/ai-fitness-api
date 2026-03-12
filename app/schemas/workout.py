@@ -1,6 +1,6 @@
 # app/schemas/workout.py
 from pydantic import BaseModel
-from typing import List
+from typing import List, Union
 from typing import Optional
 
 class UserProfile(BaseModel):
@@ -13,14 +13,14 @@ class UserProfile(BaseModel):
 
 class Exercise(BaseModel):
     name: str
-    sets: Optional[int] = 0
+    sets: Optional[Union[int, str]] = 0 
     reps: Optional[str] = ""
-    rest_seconds: Optional[int] = 0
+    rest_seconds: Optional[Union[int, str]] = 0
     
 
 class WorkoutDay(BaseModel):
     day_name: str
-    exercises: List[Exercise]
+    exercises: List[Exercise] = []
 
 class WorkoutPlan(BaseModel):
     plan_name: str
@@ -32,5 +32,4 @@ class WorkoutModificationRequest(BaseModel):
     modification_prompt: str
 
 class WorkoutPlanSave(BaseModel):
-    user_id: int
     plan: WorkoutPlan

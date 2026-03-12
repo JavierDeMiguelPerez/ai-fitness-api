@@ -10,6 +10,8 @@ from app.services import llm_service
 from typing import List
 from app.models.workout import WorkoutPlan as DBWorkoutPlan
 from app.schemas.workout import WorkoutPlanSave
+from app.api.deps import get_current_user
+from app.models.user import User
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 @router.post("/generate", response_model=WorkoutPlan)
@@ -71,11 +73,11 @@ def modify_workout(request: WorkoutModificationRequest):
     return modified_plan_dict
 
 @router.post("/save")
-def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db)):
+def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan_dict = request.plan.model_dump()
     
     new_plan = DBWorkoutPlan(
-        user_id=request.user_id,
+        user_id=current_user.id,
         name=request.plan.plan_name,
         plan_data=plan_dict
     )
