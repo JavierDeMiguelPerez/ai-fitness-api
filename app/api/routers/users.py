@@ -20,17 +20,15 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
     new_user = user_service.create_user(db, user_in)
     return new_user
 
-@router.get("/me", response_model=UserResponse)
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
 
-@router.get("/me/profile", response_model=UserProfileResponse)
+
+@router.get("/me", response_model=UserProfileResponse)
 def get_user_profile(current_user: User = Depends(get_current_user)):
     if not current_user.profile:
         raise HTTPException(status_code=404, detail="Profile not found. Please create one.")
     return current_user.profile
 
-@router.put("/me/profile", response_model=UserProfileResponse)
+@router.put("/me", response_model=UserProfileResponse)
 def update_user_profile(
     profile_in: UserProfileUpdate, 
     db: Session = Depends(get_db), 
