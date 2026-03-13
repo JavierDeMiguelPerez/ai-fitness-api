@@ -23,9 +23,9 @@ def generate_workout(profile: UserProfile):
     return workout_plan_dict
 
 @router.post("/log")
-def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(get_db)):
+def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_session = WorkoutSession(
-        user_id=session_in.user_id, 
+        user_id=current_user.id, 
         day_name=session_in.day_name
     )
     
@@ -51,11 +51,11 @@ def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(
         "session_id": new_session.id
     }
 
-@router.get("/history/{user_id}", response_model=List[WorkoutSessionResponse])
-def get_workout_history(user_id: int, db: Session = Depends(get_db)):
+@router.get("/history", response_model=List[WorkoutSessionResponse])
+def get_workout_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # Hacemos la query filtrando por el usuario y ordenando por fecha descendente
     history = db.query(WorkoutSession)\
-                .filter(WorkoutSession.user_id == user_id)\
+                .filter(WorkoutSession.user_id == current_user.id)\
                 .order_by(WorkoutSession.date.desc())\
                 .all()
     

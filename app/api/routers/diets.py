@@ -55,7 +55,7 @@ def save_diet_plan(request: DietPlanSave, db: Session = Depends(get_db), current
     return {"message": "Dieta guardada con éxito", "plan_id": new_plan.id}
 
 @router.post("/log", response_model=MealLogSaveResponse)
-def log_meal_and_save(request: MealLogSaveRequest, db: Session = Depends(get_db)):
+def log_meal_and_save(request: MealLogSaveRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     macros_dict = llm_service.analyze_meal_text(request.meal_text)
     
     safe_calories = int(round(float(macros_dict["calories"])))
@@ -64,7 +64,7 @@ def log_meal_and_save(request: MealLogSaveRequest, db: Session = Depends(get_db)
     safe_fats = int(round(float(macros_dict["fats_g"])))
     
     new_log = DailyMealLog(
-        user_id=request.user_id,
+        user_id=current_user.id,
         food_recognized=macros_dict["food_recognized"],
         calories=safe_calories,
         protein_g=safe_protein,

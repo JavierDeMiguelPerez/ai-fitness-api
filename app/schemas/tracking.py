@@ -13,7 +13,6 @@ class ExerciseLogCreate(BaseModel):
     sets: List[SetLogCreate]
 
 class WorkoutSessionCreate(BaseModel):
-    user_id: int
     day_name: str
     exercises: List[ExerciseLogCreate]
 
