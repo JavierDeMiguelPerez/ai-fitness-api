@@ -3,13 +3,6 @@ from pydantic import BaseModel
 from typing import List, Union
 from typing import Optional
 
-class UserProfile(BaseModel):
-    age: int
-    weight_kg: float
-    height_cm: float
-    gender: str
-    experience_level: str
-    primary_goal: str
 
 class Exercise(BaseModel):
     name: str

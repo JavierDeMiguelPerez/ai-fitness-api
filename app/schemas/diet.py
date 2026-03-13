@@ -2,15 +2,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-class DietProfile(BaseModel):
-    age: int
-    weight_kg: float
-    height_cm: float
-    gender: str
-    primary_goal: str
-    activity_level: str
-    dietary_preferences: Optional[str] = "None"
-    allergies: Optional[str] = "None"
 
 class Meal(BaseModel):
     meal_name: str

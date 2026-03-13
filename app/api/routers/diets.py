@@ -1,21 +1,31 @@
 # app/api/routers/diets.py
 from app.api.deps import get_current_user
-from app.models.diet import SavedDietPlan
-from fastapi import APIRouter
+from app.models.diet import SavedDietPlan, DailyMealLog
+from fastapi import APIRouter, Depends, HTTPException
 from app.models.user import User
 from app.services import llm_service
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
 from app.core.database import get_db
-from app.services import llm_service
-from app.models.diet import SavedDietPlan, DailyMealLog
-from app.schemas.diet import DietProfile, DietPlan, MealLogRequest, MealMacrosResponse, DietModificationRequest, DietPlanSave, MealLogSaveRequest, MealLogSaveResponse
+from app.schemas.diet import DietPlan, MealLogRequest, MealMacrosResponse, DietModificationRequest, DietPlanSave, MealLogSaveRequest, MealLogSaveResponse
+from app.schemas.profile import UserProfileResponse
 
 router = APIRouter(prefix="/diets", tags=["Diets"])
 
 @router.post("/generate", response_model=DietPlan)
-def generate_diet(profile: DietProfile):
-    profile_dict = profile.model_dump()
+def generate_diet(current_user: User = Depends(get_current_user)):
+    if not current_user.profile:
+        raise HTTPException(status_code=400, detail="Profile not found. Please create one.")
+        
+    profile_dict = {
+        "age": current_user.profile.age,
+        "weight_kg": current_user.profile.weight_kg,
+        "height_cm": current_user.profile.height_cm,
+        "gender": current_user.profile.gender,
+        "primary_goal": current_user.profile.primary_goal,
+        "activity_level": current_user.profile.activity_level,
+        "dietary_preferences": current_user.profile.dietary_preferences,
+        "allergies": current_user.profile.allergies
+    }
     
     diet_plan_dict = llm_service.generate_diet_plan(profile_dict)
     

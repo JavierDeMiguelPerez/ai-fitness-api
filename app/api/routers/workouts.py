@@ -1,11 +1,12 @@
 # app/api/routers/workouts.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.workout import ExerciseLog, ExerciseLog, SetLog, WorkoutSession
 from app.models.workout import SetLog
 from app.schemas.tracking import WorkoutSessionCreate, WorkoutSessionResponse
-from app.schemas.workout import UserProfile, WorkoutModificationRequest, WorkoutPlan
+from app.schemas.workout import WorkoutModificationRequest, WorkoutPlan
+from app.schemas.profile import UserProfileResponse
 from app.services import llm_service
 from typing import List
 from app.models.workout import WorkoutPlan as DBWorkoutPlan
@@ -15,8 +16,19 @@ from app.models.user import User
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
 
 @router.post("/generate", response_model=WorkoutPlan)
-def generate_workout(profile: UserProfile):
-    profile_dict = profile.model_dump()
+def generate_workout(current_user: User = Depends(get_current_user)):
+    if not current_user.profile:
+        raise HTTPException(status_code=400, detail="Profile not found. Please create one.")
+        
+    # Convert SQLAlchemy model to dict, exclude internal IDs for LLM if desired
+    profile_dict = {
+        "age": current_user.profile.age,
+        "weight_kg": current_user.profile.weight_kg,
+        "height_cm": current_user.profile.height_cm,
+        "gender": current_user.profile.gender,
+        "experience_level": current_user.profile.experience_level,
+        "primary_goal": current_user.profile.primary_goal
+    }
     
     workout_plan_dict = llm_service.generate_fitness_plan(profile_dict)
     
