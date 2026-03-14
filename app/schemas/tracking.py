@@ -33,9 +33,11 @@ class ExerciseLogResponse(BaseModel):
     class Config:
         from_attributes = True
 
+from uuid import UUID
+
 class WorkoutSessionResponse(BaseModel):
     id: int
-    user_id: int
+    user_id: UUID
     date: datetime
     day_name: str
     exercises: List[ExerciseLogResponse]

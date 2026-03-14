@@ -26,3 +26,16 @@ class WorkoutModificationRequest(BaseModel):
 
 class WorkoutPlanSave(BaseModel):
     plan: WorkoutPlan
+
+from datetime import datetime
+from uuid import UUID
+
+class SavedWorkoutPlanResponse(BaseModel):
+    id: int
+    user_id: UUID
+    name: str
+    plan_data: WorkoutPlan
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True

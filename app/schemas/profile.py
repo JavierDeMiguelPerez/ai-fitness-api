@@ -18,9 +18,11 @@ class UserProfileCreate(UserProfileBase):
 class UserProfileUpdate(UserProfileBase):
     pass
 
+from uuid import UUID
+
 class UserProfileResponse(UserProfileBase):
     id: int
-    user_id: int
+    user_id: UUID
 
     class Config:
         from_attributes = True

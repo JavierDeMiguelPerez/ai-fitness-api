@@ -49,3 +49,29 @@ class MealLogSaveResponse(BaseModel):
     protein_g: int
     carbs_g: int
     fats_g: int
+
+from datetime import datetime
+from uuid import UUID
+
+class SavedDietPlanResponse(BaseModel):
+    id: int
+    user_id: UUID
+    name: str
+    plan_data: DietPlan
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class DailyMealLogResponse(BaseModel):
+    id: int
+    user_id: UUID
+    food_recognized: str
+    calories: int
+    protein_g: int
+    carbs_g: int
+    fats_g: int
+    logged_at: datetime
+
+    class Config:
+        from_attributes = True

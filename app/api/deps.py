@@ -1,4 +1,5 @@
 # app/api/deps.py
+import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
@@ -24,10 +25,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         if user_id_str is None:
             raise credentials_exception
             
-    except jwt.InvalidTokenError:
+        user_id_uuid = uuid.UUID(user_id_str)
+            
+    except (jwt.InvalidTokenError, ValueError):
         raise credentials_exception
         
-    user = user_service.select_user_by_id(db, user_id=int(user_id_str))
+    user = user_service.select_user_by_id(db, user_id=user_id_uuid)
     if user is None:
         raise credentials_exception
         

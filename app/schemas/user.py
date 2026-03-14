@@ -1,11 +1,12 @@
 from pydantic import BaseModel, EmailStr
+from uuid import UUID
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
 class UserResponse(BaseModel):
-    id: int
+    id: UUID
     email: EmailStr
     is_active: bool
 

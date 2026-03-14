@@ -10,10 +10,19 @@ from app.schemas.profile import UserProfileResponse
 from app.services import llm_service
 from typing import List
 from app.models.workout import WorkoutPlan as DBWorkoutPlan
-from app.schemas.workout import WorkoutPlanSave
+from app.schemas.workout import WorkoutPlanSave, SavedWorkoutPlanResponse
 from app.api.deps import get_current_user
 from app.models.user import User
+
 router = APIRouter(prefix="/workouts", tags=["Workouts"])
+
+@router.get("/saved", response_model=List[SavedWorkoutPlanResponse])
+def get_saved_workouts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    saved_plans = db.query(DBWorkoutPlan)\
+                    .filter(DBWorkoutPlan.user_id == current_user.id)\
+                    .order_by(DBWorkoutPlan.created_at.desc())\
+                    .all()
+    return saved_plans
 
 @router.post("/generate", response_model=WorkoutPlan)
 def generate_workout(current_user: User = Depends(get_current_user)):
@@ -99,3 +108,23 @@ def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db), c
     db.refresh(new_plan)
     
     return {"message": "Rutina guardada con éxito", "plan_id": new_plan.id}
+
+@router.delete("/saved/{plan_id}")
+def delete_saved_workout(plan_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    plan = db.query(DBWorkoutPlan).filter(DBWorkoutPlan.id == plan_id, DBWorkoutPlan.user_id == current_user.id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Rutina no encontrada")
+    
+    db.delete(plan)
+    db.commit()
+    return {"message": "Rutina eliminada con éxito"}
+
+@router.delete("/history/{session_id}")
+def delete_workout_session(session_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    session = db.query(WorkoutSession).filter(WorkoutSession.id == session_id, WorkoutSession.user_id == current_user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesión no encontrada")
+    
+    db.delete(session)
+    db.commit()
+    return {"message": "Sesión eliminada con éxito"}

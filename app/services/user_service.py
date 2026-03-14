@@ -5,10 +5,12 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 from app.core.security import get_password_hash
 
+from uuid import UUID
+
 def select_user_by_email(db: Session, email: str) -> User:
     return db.query(User).filter(User.email == email).first()
 
-def select_user_by_id(db: Session, user_id: int) -> User:
+def select_user_by_id(db: Session, user_id: UUID) -> User:
     return db.query(User).filter(User.id == user_id).first()
 
 def create_user(db: Session, user_in: UserCreate):
