@@ -39,3 +39,11 @@ class SavedWorkoutPlanResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class WorkoutLogResponse(BaseModel):
+    message: str
+    session_id: int
+
+class WorkoutSaveResponse(BaseModel):
+    message: str
+    plan_id: int

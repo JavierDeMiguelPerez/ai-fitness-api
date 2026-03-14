@@ -2,15 +2,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.models.workout import ExerciseLog, ExerciseLog, SetLog, WorkoutSession
-from app.models.workout import SetLog
-from app.schemas.tracking import WorkoutSessionCreate, WorkoutSessionResponse
-from app.schemas.workout import WorkoutModificationRequest, WorkoutPlan
+from app.models.workout import ExerciseLog, SetLog, WorkoutSession
+from app.schemas.tracking import WorkoutSessionCreate, WorkoutSessionResponse, WorkoutSessionUpdate
+from app.schemas.workout import WorkoutModificationRequest, WorkoutPlan, WorkoutPlanSave, SavedWorkoutPlanResponse, WorkoutLogResponse, WorkoutSaveResponse
+from app.schemas.common import MessageResponse
 from app.schemas.profile import UserProfileResponse
 from app.services import llm_service
 from typing import List
 from app.models.workout import WorkoutPlan as DBWorkoutPlan
-from app.schemas.workout import WorkoutPlanSave, SavedWorkoutPlanResponse
 from app.api.deps import get_current_user
 from app.models.user import User
 
@@ -43,7 +42,7 @@ def generate_workout(current_user: User = Depends(get_current_user)):
     
     return workout_plan_dict
 
-@router.post("/log")
+@router.post("/log", response_model=WorkoutLogResponse)
 def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     new_session = WorkoutSession(
         user_id=current_user.id, 
@@ -73,17 +72,19 @@ def log_workout_session(session_in: WorkoutSessionCreate, db: Session = Depends(
     }
 
 @router.get("/history", response_model=List[WorkoutSessionResponse])
-def get_workout_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_workout_history(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # Hacemos la query filtrando por el usuario y ordenando por fecha descendente
     history = db.query(WorkoutSession)\
                 .filter(WorkoutSession.user_id == current_user.id)\
                 .order_by(WorkoutSession.date.desc())\
+                .offset(skip)\
+                .limit(limit)\
                 .all()
     
     return history
 
 @router.post("/modify", response_model=WorkoutPlan)
-def modify_workout(request: WorkoutModificationRequest):
+def modify_workout(request: WorkoutModificationRequest, current_user: User = Depends(get_current_user)):
     current_plan_dict = request.current_plan.model_dump()
     
     modified_plan_dict = llm_service.modify_fitness_plan(
@@ -93,7 +94,7 @@ def modify_workout(request: WorkoutModificationRequest):
     
     return modified_plan_dict
 
-@router.post("/save")
+@router.post("/save", response_model=WorkoutSaveResponse)
 def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan_dict = request.plan.model_dump()
     
@@ -109,7 +110,7 @@ def save_workout_plan(request: WorkoutPlanSave, db: Session = Depends(get_db), c
     
     return {"message": "Rutina guardada con éxito", "plan_id": new_plan.id}
 
-@router.delete("/saved/{plan_id}")
+@router.delete("/saved/{plan_id}", response_model=MessageResponse)
 def delete_saved_workout(plan_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan = db.query(DBWorkoutPlan).filter(DBWorkoutPlan.id == plan_id, DBWorkoutPlan.user_id == current_user.id).first()
     if not plan:
@@ -119,7 +120,34 @@ def delete_saved_workout(plan_id: int, db: Session = Depends(get_db), current_us
     db.commit()
     return {"message": "Rutina eliminada con éxito"}
 
-@router.delete("/history/{session_id}")
+@router.put("/history/{session_id}", response_model=MessageResponse)
+def update_workout_session(session_id: int, session_data: WorkoutSessionUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    session = db.query(WorkoutSession).filter(WorkoutSession.id == session_id, WorkoutSession.user_id == current_user.id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Sesión no encontrada")
+    
+    # Update flat fields
+    session.day_name = session_data.day_name
+    
+    # Clear existing exercises (cascade delete-orphan will handle exercise_logs and set_logs)
+    session.exercises.clear()
+    
+    # Add new content
+    for exc_in in session_data.exercises:
+        new_exc = ExerciseLog(exercise_name=exc_in.exercise_name)
+        for set_in in exc_in.sets:
+            new_set = SetLog(
+                set_number=set_in.set_number,
+                reps=set_in.reps,
+                weight_kg=set_in.weight_kg
+            )
+            new_exc.sets.append(new_set)
+        session.exercises.append(new_exc)
+    
+    db.commit()
+    return {"message": "Sesión actualizada con éxito"}
+
+@router.delete("/history/{session_id}", response_model=MessageResponse)
 def delete_workout_session(session_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     session = db.query(WorkoutSession).filter(WorkoutSession.id == session_id, WorkoutSession.user_id == current_user.id).first()
     if not session:

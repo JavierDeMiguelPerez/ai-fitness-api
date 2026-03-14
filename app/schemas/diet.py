@@ -75,3 +75,7 @@ class DailyMealLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class DietSaveResponse(BaseModel):
+    message: str
+    plan_id: int

@@ -6,7 +6,8 @@ from app.models.user import User
 from app.services import llm_service
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.schemas.diet import DietPlan, MealLogRequest, MealMacrosResponse, DietModificationRequest, DietPlanSave, MealLogSaveRequest, MealLogSaveResponse, SavedDietPlanResponse, DailyMealLogResponse
+from app.schemas.diet import DietPlan, MealLogRequest, MealMacrosResponse, DietModificationRequest, DietPlanSave, MealLogSaveRequest, MealLogSaveResponse, SavedDietPlanResponse, DailyMealLogResponse, DietSaveResponse
+from app.schemas.common import MessageResponse
 from app.schemas.profile import UserProfileResponse
 from typing import List
 
@@ -21,10 +22,12 @@ def get_saved_diets(db: Session = Depends(get_db), current_user: User = Depends(
     return saved_plans
 
 @router.get("/history", response_model=List[DailyMealLogResponse])
-def get_diet_history(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_diet_history(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     history = db.query(DailyMealLog)\
                 .filter(DailyMealLog.user_id == current_user.id)\
                 .order_by(DailyMealLog.logged_at.desc())\
+                .offset(skip)\
+                .limit(limit)\
                 .all()
     return history
 
@@ -49,13 +52,13 @@ def generate_diet(current_user: User = Depends(get_current_user)):
     return diet_plan_dict
 
 @router.post("/log-text", response_model=MealMacrosResponse)
-def log_meal_from_text(request: MealLogRequest):
+def log_meal_from_text(request: MealLogRequest, current_user: User = Depends(get_current_user)):
     macros_dict = llm_service.analyze_meal_text(request.meal_text)
     
     return macros_dict
 
 @router.post("/modify", response_model=DietPlan)
-def modify_diet(request: DietModificationRequest):
+def modify_diet(request: DietModificationRequest, current_user: User = Depends(get_current_user)):
     current_plan_dict = request.current_plan.model_dump()
     
     modified_plan_dict = llm_service.modify_diet_plan(
@@ -65,7 +68,7 @@ def modify_diet(request: DietModificationRequest):
     
     return modified_plan_dict
 
-@router.post("/save")
+@router.post("/save", response_model=DietSaveResponse)
 def save_diet_plan(request: DietPlanSave, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan_dict = request.plan.model_dump()
     
@@ -113,7 +116,7 @@ def log_meal_and_save(request: MealLogSaveRequest, db: Session = Depends(get_db)
         "fats_g": safe_fats
     }
 
-@router.delete("/saved/{plan_id}")
+@router.delete("/saved/{plan_id}", response_model=MessageResponse)
 def delete_saved_diet(plan_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     plan = db.query(SavedDietPlan).filter(SavedDietPlan.id == plan_id, SavedDietPlan.user_id == current_user.id).first()
     if not plan:
@@ -123,7 +126,7 @@ def delete_saved_diet(plan_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
     return {"message": "Dieta eliminada con éxito"}
 
-@router.delete("/history/{log_id}")
+@router.delete("/history/{log_id}", response_model=MessageResponse)
 def delete_diet_log(log_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     log = db.query(DailyMealLog).filter(DailyMealLog.id == log_id, DailyMealLog.user_id == current_user.id).first()
     if not log:

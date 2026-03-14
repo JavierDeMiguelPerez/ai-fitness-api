@@ -16,6 +16,9 @@ class WorkoutSessionCreate(BaseModel):
     day_name: str
     exercises: List[ExerciseLogCreate]
 
+class WorkoutSessionUpdate(WorkoutSessionCreate):
+    pass
+
 class SetLogResponse(BaseModel):
     id: int
     set_number: int
