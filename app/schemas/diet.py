@@ -58,6 +58,7 @@ class SavedDietPlanResponse(BaseModel):
     user_id: UUID
     name: str
     plan_data: DietPlan
+    is_active: bool
     created_at: datetime
 
     class Config:

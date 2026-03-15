@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from app.core.database import Base
@@ -9,7 +9,8 @@ class SavedDietPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
-    plan_data = Column(JSON, nullable=False) # Aquí guardaremos la dieta entera de Llama 3
+    plan_data = Column(JSON, nullable=False)
+    is_active = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class DailyMealLog(Base):

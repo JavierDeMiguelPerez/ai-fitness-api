@@ -23,6 +23,28 @@ def get_saved_workouts(db: Session = Depends(get_db), current_user: User = Depen
                     .all()
     return saved_plans
 
+@router.get("/active", response_model=SavedWorkoutPlanResponse)
+def get_active_workout(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    active_plan = db.query(DBWorkoutPlan).filter(
+        DBWorkoutPlan.user_id == current_user.id,
+        DBWorkoutPlan.is_active == True
+    ).first()
+    if not active_plan:
+        raise HTTPException(status_code=404, detail="No hay rutina activa")
+    return active_plan
+
+@router.put("/saved/{plan_id}/activate", response_model=MessageResponse)
+def activate_workout_plan(plan_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Deactivate all plans for this user
+    db.query(DBWorkoutPlan).filter(DBWorkoutPlan.user_id == current_user.id).update({"is_active": False})
+    # Activate the selected plan
+    plan = db.query(DBWorkoutPlan).filter(DBWorkoutPlan.id == plan_id, DBWorkoutPlan.user_id == current_user.id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Rutina no encontrada")
+    plan.is_active = True
+    db.commit()
+    return {"message": "Rutina activada con éxito"}
+
 @router.post("/generate", response_model=WorkoutPlan)
 def generate_workout(current_user: User = Depends(get_current_user)):
     if not current_user.profile:

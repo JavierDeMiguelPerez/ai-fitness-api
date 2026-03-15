@@ -35,6 +35,7 @@ class SavedWorkoutPlanResponse(BaseModel):
     user_id: UUID
     name: str
     plan_data: WorkoutPlan
+    is_active: bool
     created_at: datetime
     
     class Config:

@@ -21,6 +21,26 @@ def get_saved_diets(db: Session = Depends(get_db), current_user: User = Depends(
                     .all()
     return saved_plans
 
+@router.get("/active", response_model=SavedDietPlanResponse)
+def get_active_diet(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    active_plan = db.query(SavedDietPlan).filter(
+        SavedDietPlan.user_id == current_user.id,
+        SavedDietPlan.is_active == True
+    ).first()
+    if not active_plan:
+        raise HTTPException(status_code=404, detail="No hay dieta activa")
+    return active_plan
+
+@router.put("/saved/{plan_id}/activate", response_model=MessageResponse)
+def activate_diet_plan(plan_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    db.query(SavedDietPlan).filter(SavedDietPlan.user_id == current_user.id).update({"is_active": False})
+    plan = db.query(SavedDietPlan).filter(SavedDietPlan.id == plan_id, SavedDietPlan.user_id == current_user.id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Dieta no encontrada")
+    plan.is_active = True
+    db.commit()
+    return {"message": "Dieta activada con éxito"}
+
 @router.get("/history", response_model=List[DailyMealLogResponse])
 def get_diet_history(skip: int = 0, limit: int = 20, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     history = db.query(DailyMealLog)\
