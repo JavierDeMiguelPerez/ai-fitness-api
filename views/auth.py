@@ -64,6 +64,12 @@ with tab_registro:
         if submitted:
             res = requests.post(f"{API_URL}/users/", json={"email": new_email, "password": new_password})
             if res.status_code == 200:
-                st.success("Cuenta creada. Ya puedes iniciar sesion.")
+                st.success("¡Cuenta creada! Ya puedes iniciar sesión.")
+                st.balloons()
             else:
-                st.error(res.json().get("detail", "Error al crear la cuenta."))
+                try:
+                    error_msg = res.json().get("detail", "Error al crear la cuenta.")
+                    st.error(error_msg)
+                except requests.exceptions.JSONDecodeError:
+                    st.error(f"Error Crítico del Servidor ({res.status_code}): El backend no respondió con JSON.")
+                    st.code(res.text)
