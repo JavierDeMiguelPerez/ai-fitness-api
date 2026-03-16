@@ -2,8 +2,9 @@
 import streamlit as st
 import requests
 from datetime import date
+import os
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", "http://api:8000")
 headers = {"Authorization": f"Bearer {st.session_state.token}"}
 
 st.title("Area de Entrenamientos")

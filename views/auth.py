@@ -1,8 +1,9 @@
 # views/auth.py
 import streamlit as st
 import requests
+import os
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", "http://api:8000")
 
 st.title("Bienvenido a AI Fitness & Nutrition")
 st.caption("Tu entrenador personal y nutricionista impulsado por inteligencia artificial")
